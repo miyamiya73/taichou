@@ -133,8 +133,6 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
   background:var(--ink); color:#fff; font-size:13px; padding:9px 18px; border-radius:999px;
   opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:60; }
 .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
-
-.footer{ text-align:center; font-size:11px; color:#b3ad9d; margin-top:1.5rem; letter-spacing:.08em; }
 </style>
 </head>
 <body>
@@ -200,8 +198,6 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
     </div>
     <p class="backup-note">データはこの端末のブラウザ内にだけ保存されます。機種変更や万一に備えて、ときどき「書き出し」でファイルを保存しておくと安心です。</p>
   </section>
-
-  <p class="footer">✦ fp_miyabi</p>
 </div>
 
 <!-- 編集モーダル -->
@@ -315,7 +311,7 @@ function renderAgg(){
     if(d>=start && d<=today){ counts[e.level]++; rec++; }
   });
 
-  var good=counts[6]+counts[5], normal=counts[4], bad=counts[3]+counts[2]+counts[1];
+  var good=counts[6]+counts[5], normal=counts[4], slight=counts[3], bad=counts[2]+counts[1];
 
   // サマリー文
   var sumEl=document.getElementById('agg-summary');
@@ -323,7 +319,7 @@ function renderAgg(){
     sumEl.textContent='この期間の記録はまだありません。上の「きょうの調子」やカレンダーから記録してみましょう。';
   } else {
     sumEl.innerHTML='この<b>'+periodLabel+'</b>（'+periodDays+'日間）で記録した<b>'+rec+'日</b>のうち、'
-      +'調子が良い日が<b>'+good+'日</b>、ふつうが<b>'+normal+'日</b>、悪い日が<b>'+bad+'日</b>でした。';
+      +'良い日が<b>'+good+'日</b>、ふつうが<b>'+normal+'日</b>、少し悪い日が<b>'+slight+'日</b>、悪い日が<b>'+bad+'日</b>でした。';
   }
   document.getElementById('agg-coverage').textContent =
     '対象 '+periodDays+'日 ・ 記録した日 '+rec+'日（'+(periodDays?Math.round(rec/periodDays*100):0)+'%）';
