@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#B5933F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="体調記録">
+<title>体調記録</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root{
+  --ivory:#F2EFE6; --gold:#B5933F; --ink:#1A1A1A; --muted:#8c8676;
+  --card:#ffffff; --line:#e7e1d2;
+}
+body{
+  font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif;
+  background:var(--ivory); color:var(--ink); min-height:100vh;
+  padding:1.25rem 0.9rem 4rem; line-height:1.6;
+}
+.wrap{ max-width:560px; margin:0 auto; }
+
+header{ margin-bottom:1.25rem; }
+h1{ font-size:22px; font-weight:600; letter-spacing:.04em; }
+h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-radius:2px; margin-top:7px; }
+.subtitle{ font-size:13px; color:var(--muted); margin-top:.6rem; }
+
+.card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:1.1rem 1rem; margin-bottom:1rem; }
+.card-title{ font-size:13px; font-weight:600; color:#6b6452; letter-spacing:.06em; margin-bottom:.9rem; display:flex; align-items:center; gap:.5rem; }
+.card-title .accent{ width:6px; height:14px; background:var(--gold); border-radius:2px; display:inline-block; }
+
+/* 日付見出し */
+.date-line{ font-size:18px; font-weight:600; margin-bottom:.9rem; }
+.date-line small{ font-size:13px; color:var(--muted); font-weight:400; margin-left:.4rem; }
+
+/* レベルボタン */
+.level-picker{ display:flex; flex-direction:column; gap:8px; }
+.lv-btn{
+  --c:#ccc; display:flex; align-items:center; gap:.7rem; width:100%;
+  padding:13px 14px; border:1.5px solid var(--line); border-radius:11px;
+  background:#fff; font-family:inherit; font-size:16px; color:var(--ink);
+  cursor:pointer; transition:transform .05s, border-color .15s, background .15s;
+}
+.lv-btn:active{ transform:scale(.985); }
+.lv-btn .lv-dot{ width:18px; height:18px; border-radius:50%; background:var(--c); flex-shrink:0; border:2px solid #fff; box-shadow:0 0 0 1.5px var(--c); }
+.lv-btn .lv-label{ font-weight:500; }
+.lv-btn.sel{ border-color:var(--c); background:var(--c); color:var(--t,#fff); }
+.lv-btn.sel .lv-dot{ background:var(--t,#fff); box-shadow:0 0 0 1.5px var(--t,#fff); }
+
+.memo-wrap{ margin-top:.9rem; }
+.memo-wrap label{ font-size:12px; color:var(--muted); display:block; margin-bottom:.35rem; }
+.memo-wrap input{
+  width:100%; padding:10px 12px; font-size:15px; font-family:inherit;
+  border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink);
+}
+.memo-wrap input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(181,147,63,.18); }
+
+/* 集計 */
+.period-tabs{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:1rem; }
+.period-tabs button{
+  padding:6px 13px; font-size:13px; font-family:inherit; cursor:pointer;
+  border:1px solid var(--line); border-radius:999px; background:#fff; color:#6b6452;
+}
+.period-tabs button.on{ background:var(--gold); border-color:var(--gold); color:#fff; font-weight:600; }
+.summary{ font-size:14px; line-height:1.7; margin-bottom:.4rem; }
+.coverage{ font-size:12px; color:var(--muted); margin-bottom:1rem; }
+.stack{ display:flex; height:16px; border-radius:6px; overflow:hidden; background:#f0ece2; margin-bottom:1.1rem; }
+.stack span{ height:100%; }
+.agg-row{ display:flex; align-items:center; gap:.6rem; margin-bottom:.7rem; font-size:14px; }
+.agg-row .sw{ width:14px; height:14px; border-radius:4px; flex-shrink:0; }
+.agg-row .lbl{ width:5.2em; flex-shrink:0; }
+.agg-row .barbox{ flex:1; height:9px; background:#f0ece2; border-radius:5px; overflow:hidden; }
+.agg-row .barbox i{ display:block; height:100%; border-radius:5px; }
+.agg-row .num{ width:5.6em; text-align:right; flex-shrink:0; color:#4a4636; font-variant-numeric:tabular-nums; }
+
+/* カレンダー */
+.cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.8rem; }
+.cal-head button{ width:38px; height:38px; border:1px solid var(--line); background:#fff; border-radius:9px; font-size:18px; cursor:pointer; color:#6b6452; font-family:inherit; }
+.cal-head .cal-title{ font-size:16px; font-weight:600; }
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+.cal-wd{ text-align:center; font-size:11px; color:var(--muted); padding-bottom:3px; }
+.cal-wd.sun{ color:#c25b4e; } .cal-wd.sat{ color:#5b7fc2; }
+.cal-cell{
+  aspect-ratio:1/1; border:1px solid var(--line); border-radius:9px; background:#fff;
+  font-size:14px; font-family:inherit; color:var(--ink); cursor:pointer; position:relative;
+  display:flex; align-items:center; justify-content:center;
+}
+.cal-cell.empty{ border:none; background:transparent; cursor:default; }
+.cal-cell.has{ border-color:transparent; font-weight:600; }
+.cal-cell.today{ box-shadow:0 0 0 2px var(--gold); }
+.cal-cell.future{ color:#c9c4b6; cursor:default; background:#faf8f3; }
+.cal-cell.sun:not(.has){ color:#c25b4e; } .cal-cell.sat:not(.has){ color:#5b7fc2; }
+.legend{ display:flex; flex-wrap:wrap; gap:10px 14px; margin-top:1rem; font-size:12px; color:#6b6452; }
+.legend span{ display:flex; align-items:center; gap:5px; }
+.legend .sw{ width:12px; height:12px; border-radius:3px; }
+
+/* 一覧 */
+.list{ display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; }
+.list-row{
+  display:flex; align-items:center; gap:.6rem; width:100%; text-align:left;
+  padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:#fff;
+  font-family:inherit; font-size:14px; color:var(--ink); cursor:pointer;
+}
+.list-date{ width:5.2em; flex-shrink:0; color:#6b6452; font-variant-numeric:tabular-nums; }
+.list-chip{ font-size:12px; padding:2px 9px; border-radius:999px; flex-shrink:0; }
+.list-chip.none{ background:#f0ece2; color:#9a937f; }
+.list-memo{ color:#4a4636; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.empty-note{ font-size:13px; color:var(--muted); padding:.4rem 0; }
+
+/* バックアップ */
+.backup-btns{ display:flex; flex-wrap:wrap; gap:8px; }
+.backup-btns button, .backup-btns label{
+  padding:9px 15px; font-size:13px; font-family:inherit; cursor:pointer;
+  border:1px solid var(--line); border-radius:9px; background:#fff; color:#4a4636;
+}
+.backup-btns button:active{ transform:scale(.98); }
+.backup-note{ font-size:12px; color:var(--muted); margin-top:.7rem; line-height:1.6; }
+
+/* モーダル */
+.modal{ position:fixed; inset:0; background:rgba(26,26,26,.45); display:none; align-items:flex-end; justify-content:center; z-index:50; padding:0; }
+.modal.show{ display:flex; }
+.modal-card{ background:#fff; width:100%; max-width:560px; border-radius:18px 18px 0 0; padding:1.2rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom)); }
+@media(min-width:560px){ .modal{ align-items:center; } .modal-card{ border-radius:18px; } }
+.modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+.modal-date{ font-size:17px; font-weight:600; }
+.modal-close{ background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer; line-height:1; padding:4px; }
+.modal-actions{ display:flex; justify-content:space-between; margin-top:1rem; }
+.modal-del{ background:none; border:none; color:#c25b4e; font-size:13px; font-family:inherit; cursor:pointer; padding:6px; }
+.modal-done{ background:var(--gold); color:#fff; border:none; padding:9px 22px; border-radius:9px; font-size:15px; font-family:inherit; cursor:pointer; font-weight:600; }
+
+/* トースト */
+.toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(12px);
+  background:var(--ink); color:#fff; font-size:13px; padding:9px 18px; border-radius:999px;
+  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:60; }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+.footer{ text-align:center; font-size:11px; color:#b3ad9d; margin-top:1.5rem; letter-spacing:.08em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>体調記録<span class="bar"></span></h1>
+    <p class="subtitle">毎日タップするだけ。あとから「調子のいい日・悪い日」が一目でわかります。</p>
+  </header>
+
+  <!-- 今日の記録 -->
+  <section class="card">
+    <p class="card-title"><span class="accent"></span>きょうの調子</p>
+    <div class="date-line" id="today-date">—</div>
+    <div class="level-picker" id="today-levels"></div>
+    <div class="memo-wrap">
+      <label for="today-memo">ひとことメモ（任意）</label>
+      <input type="text" id="today-memo" placeholder="例：よく眠れた／頭が重い など" maxlength="60">
+    </div>
+  </section>
+
+  <!-- 集計 -->
+  <section class="card">
+    <p class="card-title"><span class="accent"></span>ふりかえり集計</p>
+    <div class="period-tabs" id="period-tabs">
+      <button data-p="30">30日</button>
+      <button data-p="90">90日</button>
+      <button data-p="180">半年</button>
+      <button data-p="365">1年</button>
+      <button data-p="all">全期間</button>
+    </div>
+    <p class="summary" id="agg-summary">—</p>
+    <p class="coverage" id="agg-coverage"></p>
+    <div class="stack" id="agg-stack"></div>
+    <div id="agg-rows"></div>
+  </section>
+
+  <!-- カレンダー -->
+  <section class="card">
+    <p class="card-title"><span class="accent"></span>カレンダー</p>
+    <div class="cal-head">
+      <button id="cal-prev" aria-label="前の月">‹</button>
+      <span class="cal-title" id="cal-title">—</span>
+      <button id="cal-next" aria-label="次の月">›</button>
+    </div>
+    <div class="cal-grid" id="cal-wd"></div>
+    <div class="cal-grid" id="cal-grid" style="margin-top:5px;"></div>
+    <div class="legend" id="cal-legend"></div>
+  </section>
+
+  <!-- 一覧 -->
+  <section class="card">
+    <p class="card-title"><span class="accent"></span>記録の一覧</p>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- バックアップ -->
+  <section class="card">
+    <p class="card-title"><span class="accent"></span>バックアップ</p>
+    <div class="backup-btns">
+      <button id="exp-json">書き出し（JSON）</button>
+      <button id="exp-csv">CSV書き出し</button>
+      <label>読み込み（JSON）<input type="file" id="imp-json" accept="application/json,.json" hidden></label>
+    </div>
+    <p class="backup-note">データはこの端末のブラウザ内にだけ保存されます。機種変更や万一に備えて、ときどき「書き出し」でファイルを保存しておくと安心です。</p>
+  </section>
+
+  <p class="footer">✦ fp_miyabi</p>
+</div>
+
+<!-- 編集モーダル -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="modal-date" id="modal-date">—</span>
+      <button class="modal-close" id="modal-close" aria-label="閉じる">×</button>
+    </div>
+    <div class="level-picker" id="modal-levels"></div>
+    <div class="memo-wrap">
+      <label for="modal-memo">ひとことメモ（任意）</label>
+      <input type="text" id="modal-memo" placeholder="例：よく眠れた／頭が重い など" maxlength="60">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-del" id="modal-del">この日の記録を削除</button>
+      <button class="modal-done" id="modal-done">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+var STORE_KEY = 'fp_miyabi_taichou_v1';
+
+// 体調レベル（良い→悪いの順）
+var LEVELS = [
+  { v:6, label:'とても良い', color:'#2E7D5B', text:'#ffffff' },
+  { v:5, label:'良い',       color:'#7FB069', text:'#16321f' },
+  { v:4, label:'ふつう',     color:'#C8A24A', text:'#3a2f12' },
+  { v:3, label:'少し悪い',   color:'#E59A3C', text:'#3a2912' },
+  { v:2, label:'悪い',       color:'#D26A33', text:'#3a2412' },
+  { v:1, label:'とても悪い', color:'#C04A45', text:'#ffffff' }
+];
+function levelMeta(v){ for(var i=0;i<LEVELS.length;i++){ if(LEVELS[i].v===v) return LEVELS[i]; } return null; }
+
+var WD = ['日','月','火','水','木','金','土'];
+var PERIOD_LABEL = { '30':'30日間', '90':'90日間', '180':'半年', '365':'1年' };
+
+function pad(n){ return (n<10?'0':'')+n; }
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function parseYmd(s){ var a=s.split('-'); return new Date(+a[0], +a[1]-1, +a[2]); }
+function fmtJp(d){ return (d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）'; }
+function fmtShort(d){ return (d.getMonth()+1)+'/'+d.getDate()+'（'+WD[d.getDay()]+'）'; }
+function todayYmd(){ return ymd(new Date()); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+// ---- データ ----
+function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ return {}; } }
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
+var store = load();
+
+function ensure(ds){ if(!store[ds]) store[ds] = { level:null, memo:'' }; return store[ds]; }
+function setLevel(ds, lv){ var e=ensure(ds); e.level=lv; e.updatedAt=Date.now(); save(); }
+function setMemo(ds, memo){
+  var e=ensure(ds); e.memo=memo; e.updatedAt=Date.now();
+  if(e.level==null && !memo) delete store[ds];
+  save();
+}
+function removeDay(ds){ delete store[ds]; save(); }
+
+// ---- レベルボタン生成 ----
+function buildLevelButtons(container, onPick){
+  container.innerHTML='';
+  LEVELS.forEach(function(l){
+    var b=document.createElement('button');
+    b.className='lv-btn'; b.dataset.v=l.v; b.style.setProperty('--c', l.color); b.style.setProperty('--t', l.text);
+    b.innerHTML='<span class="lv-dot"></span><span class="lv-label">'+l.label+'</span>';
+    b.addEventListener('click', function(){ onPick(l.v); });
+    container.appendChild(b);
+  });
+}
+function markSelected(container, lv){
+  var btns=container.querySelectorAll('.lv-btn');
+  for(var i=0;i<btns.length;i++){ btns[i].classList.toggle('sel', Number(btns[i].dataset.v)===lv); }
+}
+
+// ---- きょう ----
+function renderToday(){
+  var t=todayYmd();
+  document.getElementById('today-date').innerHTML = fmtJp(new Date())+'<small>きょう</small>';
+  var e=store[t];
+  markSelected(document.getElementById('today-levels'), e?e.level:null);
+  document.getElementById('today-memo').value = e ? (e.memo||'') : '';
+}
+
+// ---- 集計 ----
+var aggPeriod = 180;
+function renderAgg(){
+  var today=new Date(); today.setHours(0,0,0,0);
+  var start, periodDays, periodLabel;
+  if(aggPeriod==='all'){
+    var keys=Object.keys(store).filter(function(k){ return store[k].level!=null; }).sort();
+    start = keys.length ? parseYmd(keys[0]) : new Date(today);
+    start.setHours(0,0,0,0);
+    periodDays = Math.floor((today-start)/86400000)+1;
+    periodLabel = '全期間';
+  } else {
+    start = new Date(today); start.setDate(start.getDate()-(aggPeriod-1));
+    periodDays = aggPeriod;
+    periodLabel = PERIOD_LABEL[String(aggPeriod)] || (aggPeriod+'日間');
+  }
+
+  var counts={1:0,2:0,3:0,4:0,5:0,6:0}, rec=0;
+  Object.keys(store).forEach(function(k){
+    var e=store[k]; if(e.level==null) return;
+    var d=parseYmd(k); d.setHours(0,0,0,0);
+    if(d>=start && d<=today){ counts[e.level]++; rec++; }
+  });
+
+  var good=counts[6]+counts[5], normal=counts[4], bad=counts[3]+counts[2]+counts[1];
+
+  // サマリー文
+  var sumEl=document.getElementById('agg-summary');
+  if(rec===0){
+    sumEl.textContent='この期間の記録はまだありません。上の「きょうの調子」やカレンダーから記録してみましょう。';
+  } else {
+    sumEl.innerHTML='この<b>'+periodLabel+'</b>（'+periodDays+'日間）で記録した<b>'+rec+'日</b>のうち、'
+      +'調子が良い日が<b>'+good+'日</b>、ふつうが<b>'+normal+'日</b>、悪い日が<b>'+bad+'日</b>でした。';
+  }
+  document.getElementById('agg-coverage').textContent =
+    '対象 '+periodDays+'日 ・ 記録した日 '+rec+'日（'+(periodDays?Math.round(rec/periodDays*100):0)+'%）';
+
+  // 積み上げバー（良い→悪い）
+  var stack=document.getElementById('agg-stack'); stack.innerHTML='';
+  LEVELS.forEach(function(l){
+    if(rec>0 && counts[l.v]>0){
+      var s=document.createElement('span');
+      s.style.width=(counts[l.v]/rec*100)+'%'; s.style.background=l.color;
+      stack.appendChild(s);
+    }
+  });
+
+  // 各レベルの行
+  var rows=document.getElementById('agg-rows'); rows.innerHTML='';
+  LEVELS.forEach(function(l){
+    var c=counts[l.v], pct=rec?Math.round(c/rec*100):0;
+    var row=document.createElement('div'); row.className='agg-row';
+    row.innerHTML='<span class="sw" style="background:'+l.color+'"></span>'
+      +'<span class="lbl">'+l.label+'</span>'
+      +'<span class="barbox"><i style="width:'+pct+'%;background:'+l.color+'"></i></span>'
+      +'<span class="num">'+c+'日 ('+pct+'%)</span>';
+    rows.appendChild(row);
+  });
+}
+
+// ---- カレンダー ----
+var calY, calM;
+function renderCalendar(){
+  document.getElementById('cal-title').textContent = calY+'年'+(calM+1)+'月';
+  var startWd=new Date(calY,calM,1).getDay();
+  var days=new Date(calY,calM+1,0).getDate();
+  var grid=document.getElementById('cal-grid'); grid.innerHTML='';
+  var t=todayYmd();
+  for(var i=0;i<startWd;i++){ var bl=document.createElement('div'); bl.className='cal-cell empty'; grid.appendChild(bl); }
+  for(var day=1; day<=days; day++){
+    (function(day){
+      var d=new Date(calY,calM,day), ds=ymd(d);
+      var cell=document.createElement('button'); cell.className='cal-cell'; cell.textContent=day;
+      if(d.getDay()===0) cell.classList.add('sun');
+      if(d.getDay()===6) cell.classList.add('sat');
+      var e=store[ds];
+      if(e && e.level!=null){ var m=levelMeta(e.level); cell.style.background=m.color; cell.style.color=m.text; cell.classList.add('has'); }
+      if(ds===t) cell.classList.add('today');
+      if(ds>t){ cell.classList.add('future'); cell.disabled=true; }
+      else { cell.addEventListener('click', function(){ openEditor(ds); }); }
+      grid.appendChild(cell);
+    })(day);
+  }
+}
+
+// ---- 一覧 ----
+function renderList(){
+  var keys=Object.keys(store).filter(function(k){ return store[k].level!=null || store[k].memo; }).sort().reverse();
+  var box=document.getElementById('list'); box.innerHTML='';
+  if(!keys.length){ box.innerHTML='<p class="empty-note">まだ記録がありません。</p>'; return; }
+  keys.forEach(function(k){
+    (function(k){
+      var e=store[k], d=parseYmd(k), m=e.level!=null?levelMeta(e.level):null;
+      var row=document.createElement('button'); row.className='list-row';
+      row.addEventListener('click', function(){ openEditor(k); });
+      var chip = m
+        ? '<span class="list-chip" style="background:'+m.color+';color:'+m.text+'">'+m.label+'</span>'
+        : '<span class="list-chip none">—</span>';
+      row.innerHTML='<span class="list-date">'+fmtShort(d)+'</span>'+chip
+        +'<span class="list-memo">'+escapeHtml(e.memo||'')+'</span>';
+      box.appendChild(row);
+    })(k);
+  });
+}
+
+// ---- モーダル ----
+var editDate=null;
+function openEditor(ds){
+  editDate=ds;
+  document.getElementById('modal-date').textContent=fmtJp(parseYmd(ds));
+  var e=store[ds];
+  markSelected(document.getElementById('modal-levels'), e?e.level:null);
+  document.getElementById('modal-memo').value = e ? (e.memo||'') : '';
+  document.getElementById('modal').classList.add('show');
+}
+function closeEditor(){ document.getElementById('modal').classList.remove('show'); editDate=null; }
+
+// ---- 全体再描画 ----
+function render(){ renderToday(); renderAgg(); renderCalendar(); renderList(); }
+
+// ---- トースト ----
+var toastTimer;
+function toast(msg){
+  var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1600);
+}
+
+// ---- 書き出し / 読み込み ----
+function downloadBlob(blob, name){
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download=name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function exportJson(){
+  downloadBlob(new Blob([JSON.stringify(store,null,2)],{type:'application/json'}),
+    '体調記録_'+todayYmd().replace(/-/g,'')+'.json');
+}
+function exportCsv(){
+  var rows=[['日付','レベル','体調','メモ']];
+  Object.keys(store).sort().forEach(function(k){
+    var e=store[k], m=e.level!=null?levelMeta(e.level):null;
+    rows.push([k, (e.level==null?'':e.level), (m?m.label:''), (e.memo||'')]);
+  });
+  var csv='﻿'+rows.map(function(r){
+    return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+  downloadBlob(new Blob([csv],{type:'text/csv'}), '体調記録_'+todayYmd().replace(/-/g,'')+'.csv');
+}
+function importJson(file){
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var data=JSON.parse(r.result);
+      if(typeof data!=='object' || data===null || Array.isArray(data)) throw new Error('bad');
+      var n=0;
+      Object.keys(data).forEach(function(k){
+        if(/^\d{4}-\d{2}-\d{2}$/.test(k) && data[k] && typeof data[k]==='object'){
+          store[k]={ level:(data[k].level==null?null:Number(data[k].level)), memo:String(data[k].memo||''), updatedAt:data[k].updatedAt||Date.now() };
+          n++;
+        }
+      });
+      save(); render(); toast(n+'件を読み込みました');
+    }catch(e){ toast('読み込めませんでした'); }
+  };
+  r.readAsText(file);
+}
+
+// ---- 起動 ----
+(function init(){
+  // レベルボタン
+  buildLevelButtons(document.getElementById('today-levels'), function(v){
+    setLevel(todayYmd(), v); render(); toast('保存しました');
+  });
+  buildLevelButtons(document.getElementById('modal-levels'), function(v){
+    setLevel(editDate, v);
+    markSelected(document.getElementById('modal-levels'), v);
+    renderAgg(); renderCalendar(); renderList(); renderToday();
+    toast('保存しました');
+  });
+
+  // メモ
+  document.getElementById('today-memo').addEventListener('change', function(e){
+    setMemo(todayYmd(), e.target.value.trim()); renderList(); toast('保存しました');
+  });
+  document.getElementById('modal-memo').addEventListener('change', function(e){
+    if(editDate){ setMemo(editDate, e.target.value.trim()); renderList(); renderCalendar(); }
+  });
+
+  // 集計タブ
+  var tabs=document.getElementById('period-tabs').querySelectorAll('button');
+  function setTabs(){
+    for(var i=0;i<tabs.length;i++){ tabs[i].classList.toggle('on', tabs[i].dataset.p===String(aggPeriod)); }
+  }
+  for(var i=0;i<tabs.length;i++){
+    (function(btn){
+      btn.addEventListener('click', function(){
+        aggPeriod = btn.dataset.p==='all' ? 'all' : Number(btn.dataset.p);
+        setTabs(); renderAgg();
+      });
+    })(tabs[i]);
+  }
+  setTabs();
+
+  // 曜日ヘッダ
+  var wdBox=document.getElementById('cal-wd');
+  WD.forEach(function(w,idx){
+    var c=document.createElement('div'); c.className='cal-wd'+(idx===0?' sun':idx===6?' sat':'');
+    c.textContent=w; wdBox.appendChild(c);
+  });
+
+  // カレンダー操作
+  var now=new Date(); calY=now.getFullYear(); calM=now.getMonth();
+  document.getElementById('cal-prev').addEventListener('click', function(){ calM--; if(calM<0){ calM=11; calY--; } renderCalendar(); });
+  document.getElementById('cal-next').addEventListener('click', function(){ calM++; if(calM>11){ calM=0; calY++; } renderCalendar(); });
+
+  // 凡例
+  var lg=document.getElementById('cal-legend');
+  LEVELS.forEach(function(l){
+    var s=document.createElement('span');
+    s.innerHTML='<span class="sw" style="background:'+l.color+'"></span>'+l.label;
+    lg.appendChild(s);
+  });
+
+  // モーダル操作
+  document.getElementById('modal-close').addEventListener('click', closeEditor);
+  document.getElementById('modal-done').addEventListener('click', closeEditor);
+  document.getElementById('modal').addEventListener('click', function(e){ if(e.target.id==='modal') closeEditor(); });
+  document.getElementById('modal-del').addEventListener('click', function(){
+    if(editDate){ removeDay(editDate); closeEditor(); render(); toast('削除しました'); }
+  });
+
+  // バックアップ
+  document.getElementById('exp-json').addEventListener('click', exportJson);
+  document.getElementById('exp-csv').addEventListener('click', exportCsv);
+  document.getElementById('imp-json').addEventListener('change', function(e){
+    if(e.target.files && e.target.files[0]) importJson(e.target.files[0]);
+    e.target.value='';
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
