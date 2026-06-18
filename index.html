@@ -47,7 +47,24 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
 .lv-btn.sel{ border-color:var(--c); background:var(--c); color:var(--t,#fff); }
 .lv-btn.sel .lv-dot{ background:var(--t,#fff); box-shadow:0 0 0 1.5px var(--t,#fff); }
 
-.memo-wrap{ margin-top:.9rem; }
+/* サブ見出し（やったこと等） */
+.sub-label{ font-size:12px; color:var(--muted); margin:1.1rem 0 .55rem; display:flex; align-items:center; justify-content:space-between; }
+.edit-habits{ font-size:12px; color:var(--gold); background:none; border:none; font-family:inherit; cursor:pointer; padding:2px 4px; }
+
+/* やったこと チップ */
+.habit-row{ display:flex; flex-wrap:wrap; gap:8px; }
+.habit-empty{ font-size:13px; color:var(--muted); }
+.habit-chip{
+  display:inline-flex; align-items:center; gap:.4rem; padding:10px 14px;
+  border:1.5px solid var(--line); border-radius:999px; background:#fff;
+  font-family:inherit; font-size:15px; color:var(--ink); cursor:pointer;
+  transition:transform .05s, background .15s, border-color .15s;
+}
+.habit-chip:active{ transform:scale(.97); }
+.habit-chip.on{ background:var(--gold); border-color:var(--gold); color:#fff; }
+.habit-chip .he{ font-size:16px; line-height:1; }
+
+.memo-wrap{ margin-top:1rem; }
 .memo-wrap label{ font-size:12px; color:var(--muted); display:block; margin-bottom:.35rem; }
 .memo-wrap input{
   width:100%; padding:10px 12px; font-size:15px; font-family:inherit;
@@ -69,9 +86,11 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
 .agg-row{ display:flex; align-items:center; gap:.6rem; margin-bottom:.7rem; font-size:14px; }
 .agg-row .sw{ width:14px; height:14px; border-radius:4px; flex-shrink:0; }
 .agg-row .lbl{ width:5.2em; flex-shrink:0; }
+.agg-row .hlbl{ width:auto; flex:0 0 7.5em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .agg-row .barbox{ flex:1; height:9px; background:#f0ece2; border-radius:5px; overflow:hidden; }
 .agg-row .barbox i{ display:block; height:100%; border-radius:5px; }
 .agg-row .num{ width:5.6em; text-align:right; flex-shrink:0; color:#4a4636; font-variant-numeric:tabular-nums; }
+.agg-subhead{ font-size:12px; font-weight:600; color:#6b6452; letter-spacing:.04em; margin:1.3rem 0 .8rem; padding-top:1rem; border-top:1px solid var(--line); }
 
 /* カレンダー */
 .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:.8rem; }
@@ -82,9 +101,14 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
 .cal-wd.sun{ color:#c25b4e; } .cal-wd.sat{ color:#5b7fc2; }
 .cal-cell{
   aspect-ratio:1/1; border:1px solid var(--line); border-radius:9px; background:#fff;
-  font-size:14px; font-family:inherit; color:var(--ink); cursor:pointer; position:relative;
-  display:flex; align-items:center; justify-content:center;
+  font-family:inherit; color:var(--ink); cursor:pointer; position:relative; overflow:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:2px;
 }
+.cal-cell .cnum{ font-size:13px; line-height:1.05; }
+.cal-cell .cmarks{ display:flex; flex-wrap:wrap; justify-content:center; align-content:center; gap:1px; line-height:1; max-width:100%; }
+.cal-cell .cmarks.s1 span{ font-size:11px; }
+.cal-cell .cmarks.s2 span{ font-size:9px; }
+.cal-cell .cmarks.s3 span{ font-size:7px; }
 .cal-cell.empty{ border:none; background:transparent; cursor:default; }
 .cal-cell.has{ border-color:transparent; font-weight:600; }
 .cal-cell.today{ box-shadow:0 0 0 2px var(--gold); }
@@ -97,14 +121,16 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
 /* 一覧 */
 .list{ display:flex; flex-direction:column; gap:6px; max-height:340px; overflow-y:auto; }
 .list-row{
-  display:flex; align-items:center; gap:.6rem; width:100%; text-align:left;
+  display:flex; align-items:center; gap:.5rem; width:100%; text-align:left;
   padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:#fff;
   font-family:inherit; font-size:14px; color:var(--ink); cursor:pointer;
 }
 .list-date{ width:5.2em; flex-shrink:0; color:#6b6452; font-variant-numeric:tabular-nums; }
 .list-chip{ font-size:12px; padding:2px 9px; border-radius:999px; flex-shrink:0; }
 .list-chip.none{ background:#f0ece2; color:#9a937f; }
-.list-memo{ color:#4a4636; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.list-habits{ display:flex; gap:4px; flex-shrink:0; }
+.list-habits .lh{ font-size:12px; color:#6b6452; white-space:nowrap; }
+.list-memo{ color:#4a4636; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
 .empty-note{ font-size:13px; color:var(--muted); padding:.4rem 0; }
 
 /* バックアップ */
@@ -119,14 +145,25 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
 /* モーダル */
 .modal{ position:fixed; inset:0; background:rgba(26,26,26,.45); display:none; align-items:flex-end; justify-content:center; z-index:50; padding:0; }
 .modal.show{ display:flex; }
-.modal-card{ background:#fff; width:100%; max-width:560px; border-radius:18px 18px 0 0; padding:1.2rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom)); }
+.modal-card{ background:#fff; width:100%; max-width:560px; border-radius:18px 18px 0 0; padding:1.2rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom)); max-height:90vh; overflow-y:auto; }
 @media(min-width:560px){ .modal{ align-items:center; } .modal-card{ border-radius:18px; } }
 .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
 .modal-date{ font-size:17px; font-weight:600; }
 .modal-close{ background:none; border:none; font-size:22px; color:var(--muted); cursor:pointer; line-height:1; padding:4px; }
-.modal-actions{ display:flex; justify-content:space-between; margin-top:1rem; }
+.modal-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:1.2rem; }
 .modal-del{ background:none; border:none; color:#c25b4e; font-size:13px; font-family:inherit; cursor:pointer; padding:6px; }
 .modal-done{ background:var(--gold); color:#fff; border:none; padding:9px 22px; border-radius:9px; font-size:15px; font-family:inherit; cursor:pointer; font-weight:600; }
+
+/* 項目編集モーダル */
+.hm-item{ display:flex; align-items:center; gap:.5rem; margin-bottom:8px; }
+.hm-item input{ flex:1; padding:9px 11px; font-size:15px; font-family:inherit; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); }
+.hm-item input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(181,147,63,.18); }
+.hm-del{ background:none; border:none; font-size:18px; cursor:pointer; padding:4px 6px; line-height:1; }
+.hm-add{ display:flex; gap:.5rem; margin-top:1rem; }
+.hm-add input{ flex:1; padding:9px 11px; font-size:15px; font-family:inherit; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); }
+.hm-add input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(181,147,63,.18); }
+.hm-add button{ padding:9px 16px; background:var(--gold); color:#fff; border:none; border-radius:8px; font-family:inherit; font-size:14px; cursor:pointer; white-space:nowrap; }
+.hm-note{ font-size:12px; color:var(--muted); margin-top:.8rem; line-height:1.6; }
 
 /* トースト */
 .toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(12px);
@@ -139,7 +176,7 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
 <div class="wrap">
   <header>
     <h1>体調記録<span class="bar"></span></h1>
-    <p class="subtitle">毎日タップするだけ。あとから「調子のいい日・悪い日」が一目でわかります。</p>
+    <p class="subtitle">毎日タップするだけ。体調と「やったこと」を記録して、あとから振り返れます。</p>
   </header>
 
   <!-- 今日の記録 -->
@@ -147,6 +184,10 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
     <p class="card-title"><span class="accent"></span>きょうの調子</p>
     <div class="date-line" id="today-date">—</div>
     <div class="level-picker" id="today-levels"></div>
+
+    <div class="sub-label"><span>やったこと（タップで記録）</span><button class="edit-habits" id="edit-habits">✎ 項目を編集</button></div>
+    <div class="habit-row" id="today-habits"></div>
+
     <div class="memo-wrap">
       <label for="today-memo">ひとことメモ（任意）</label>
       <input type="text" id="today-memo" placeholder="例：よく眠れた／頭が重い など" maxlength="60">
@@ -167,6 +208,7 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
     <p class="coverage" id="agg-coverage"></p>
     <div class="stack" id="agg-stack"></div>
     <div id="agg-rows"></div>
+    <div id="agg-habits"></div>
   </section>
 
   <!-- カレンダー -->
@@ -200,7 +242,7 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
   </section>
 </div>
 
-<!-- 編集モーダル -->
+<!-- 編集モーダル（その日の記録） -->
 <div class="modal" id="modal">
   <div class="modal-card">
     <div class="modal-head">
@@ -208,6 +250,8 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
       <button class="modal-close" id="modal-close" aria-label="閉じる">×</button>
     </div>
     <div class="level-picker" id="modal-levels"></div>
+    <div class="sub-label"><span>やったこと</span></div>
+    <div class="habit-row" id="modal-habits"></div>
     <div class="memo-wrap">
       <label for="modal-memo">ひとことメモ（任意）</label>
       <input type="text" id="modal-memo" placeholder="例：よく眠れた／頭が重い など" maxlength="60">
@@ -219,23 +263,53 @@ h1 .bar{ display:block; width:44px; height:3px; background:var(--gold); border-r
   </div>
 </div>
 
+<!-- 項目編集モーダル（やったことの項目） -->
+<div class="modal" id="hmodal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="modal-date">やったことの項目</span>
+      <button class="modal-close" id="hm-close" aria-label="閉じる">×</button>
+    </div>
+    <div id="hm-list"></div>
+    <div class="hm-add">
+      <input type="text" id="hm-new" placeholder="例：散歩・読書 など" maxlength="20">
+      <button id="hm-add-btn">追加</button>
+    </div>
+    <p class="hm-note">名前の変更・削除もできます。削除しても、過去の記録そのものは消えません。<br>（将来「時間・回数」などの項目も足せる作りにしています）</p>
+    <div class="modal-actions">
+      <span></span>
+      <button class="modal-done" id="hm-done">閉じる</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 "use strict";
 
-var STORE_KEY = 'fp_miyabi_taichou_v1';
+var STORE_KEY  = 'fp_miyabi_taichou_v1';        // 日々の記録
+var HABITS_KEY = 'fp_miyabi_taichou_habits_v1'; // やったことの項目定義
 
 // 体調レベル（良い→悪いの順）
 var LEVELS = [
   { v:6, label:'とても良い', color:'#2E7D5B', text:'#ffffff' },
   { v:5, label:'良い',       color:'#7FB069', text:'#16321f' },
-  { v:4, label:'ふつう',     color:'#C8A24A', text:'#3a2f12' },
-  { v:3, label:'少し悪い',   color:'#E59A3C', text:'#3a2912' },
-  { v:2, label:'悪い',       color:'#D26A33', text:'#3a2412' },
-  { v:1, label:'とても悪い', color:'#C04A45', text:'#ffffff' }
+  { v:4, label:'ふつう',     color:'#3E7CB1', text:'#ffffff' },
+  { v:3, label:'少し悪い',   color:'#E8B23E', text:'#3a2f12' },
+  { v:2, label:'悪い',       color:'#D2632F', text:'#ffffff' },
+  { v:1, label:'とても悪い', color:'#9E2B2B', text:'#ffffff' }
 ];
 function levelMeta(v){ for(var i=0;i<LEVELS.length;i++){ if(LEVELS[i].v===v) return LEVELS[i]; } return null; }
+
+// やったこと 初期項目（あとからアプリ内で追加・変更・削除できる）
+var DEFAULT_HABITS = [
+  { id:'kintore', label:'筋トレ', emoji:'💪' },
+  { id:'benkyo',  label:'勉強',   emoji:'📖' },
+  { id:'apo',     label:'アポ',   emoji:'🤝' },
+  { id:'zatsumu', label:'雑務',   emoji:'🗂' },
+  { id:'inshu',   label:'飲酒',   emoji:'🍶' }
+];
 
 var WD = ['日','月','火','水','木','金','土'];
 var PERIOD_LABEL = { '30':'30日間', '90':'90日間', '180':'半年', '365':'1年' };
@@ -248,19 +322,43 @@ function fmtShort(d){ return (d.getMonth()+1)+'/'+d.getDate()+'（'+WD[d.getDay(
 function todayYmd(){ return ymd(new Date()); }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-// ---- データ ----
+// ---- データ（日々の記録）----
 function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }catch(e){ return {}; } }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(store)); }
 var store = load();
 
-function ensure(ds){ if(!store[ds]) store[ds] = { level:null, memo:'' }; return store[ds]; }
+function ensure(ds){ if(!store[ds]) store[ds] = { level:null, memo:'', habits:{} }; return store[ds]; }
+function dayHabitCount(e){ return e && e.habits ? Object.keys(e.habits).length : 0; }
+function hasAny(e){ return !!(e && (e.level!=null || e.memo || dayHabitCount(e)>0)); }
+function cleanupDay(ds){ var e=store[ds]; if(e && e.level==null && !e.memo && dayHabitCount(e)===0) delete store[ds]; }
+
 function setLevel(ds, lv){ var e=ensure(ds); e.level=lv; e.updatedAt=Date.now(); save(); }
-function setMemo(ds, memo){
-  var e=ensure(ds); e.memo=memo; e.updatedAt=Date.now();
-  if(e.level==null && !memo) delete store[ds];
-  save();
-}
+function setMemo(ds, memo){ var e=ensure(ds); e.memo=memo; e.updatedAt=Date.now(); cleanupDay(ds); save(); }
 function removeDay(ds){ delete store[ds]; save(); }
+
+// やったこと（チェックON/OFF）。値は true（=やった）。将来 {done:true, min:30} などに拡張可能
+function isHabitDone(e, id){ return !!(e && e.habits && e.habits[id]); }
+function toggleHabit(ds, id){
+  var e=ensure(ds); if(!e.habits) e.habits={};
+  if(e.habits[id]) delete e.habits[id]; else e.habits[id]=true;
+  e.updatedAt=Date.now(); cleanupDay(ds); save();
+}
+
+// ---- データ（やったことの項目定義）----
+function loadHabits(){
+  try{ var h=JSON.parse(localStorage.getItem(HABITS_KEY)); if(Array.isArray(h)) return h; }catch(e){}
+  return DEFAULT_HABITS.slice();
+}
+function saveHabits(){ localStorage.setItem(HABITS_KEY, JSON.stringify(habits)); }
+var habits = loadHabits();
+
+function addHabit(label){
+  label=(label||'').trim(); if(!label) return;
+  habits.push({ id:'h'+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36), label:label, emoji:'' });
+  saveHabits();
+}
+function renameHabit(id, label){ for(var i=0;i<habits.length;i++){ if(habits[i].id===id){ habits[i].label=label; saveHabits(); return; } } }
+function deleteHabit(id){ habits=habits.filter(function(h){ return h.id!==id; }); saveHabits(); }
 
 // ---- レベルボタン生成 ----
 function buildLevelButtons(container, onPick){
@@ -278,6 +376,24 @@ function markSelected(container, lv){
   for(var i=0;i<btns.length;i++){ btns[i].classList.toggle('sel', Number(btns[i].dataset.v)===lv); }
 }
 
+// ---- やったこと チップ生成 ----
+function renderHabitChips(container, ds){
+  container.innerHTML='';
+  if(!habits.length){ container.innerHTML='<span class="habit-empty">項目がありません。「✎ 項目を編集」から追加できます。</span>'; return; }
+  habits.forEach(function(h){
+    var on=isHabitDone(store[ds], h.id);
+    var b=document.createElement('button'); b.className='habit-chip'+(on?' on':'');
+    b.innerHTML=(h.emoji?'<span class="he">'+h.emoji+'</span>':'')+'<span>'+escapeHtml(h.label)+'</span>';
+    b.addEventListener('click', function(){
+      toggleHabit(ds, h.id);
+      renderHabitChips(container, ds);
+      renderAgg(); renderCalendar(); renderList();
+      toast('保存しました');
+    });
+    container.appendChild(b);
+  });
+}
+
 // ---- きょう ----
 function renderToday(){
   var t=todayYmd();
@@ -285,6 +401,7 @@ function renderToday(){
   var e=store[t];
   markSelected(document.getElementById('today-levels'), e?e.level:null);
   document.getElementById('today-memo').value = e ? (e.memo||'') : '';
+  renderHabitChips(document.getElementById('today-habits'), t);
 }
 
 // ---- 集計 ----
@@ -293,7 +410,7 @@ function renderAgg(){
   var today=new Date(); today.setHours(0,0,0,0);
   var start, periodDays, periodLabel;
   if(aggPeriod==='all'){
-    var keys=Object.keys(store).filter(function(k){ return store[k].level!=null; }).sort();
+    var keys=Object.keys(store).filter(function(k){ return hasAny(store[k]); }).sort();
     start = keys.length ? parseYmd(keys[0]) : new Date(today);
     start.setHours(0,0,0,0);
     periodDays = Math.floor((today-start)/86400000)+1;
@@ -305,24 +422,29 @@ function renderAgg(){
   }
 
   var counts={1:0,2:0,3:0,4:0,5:0,6:0}, rec=0;
+  var habitCounts={}; habits.forEach(function(h){ habitCounts[h.id]=0; });
   Object.keys(store).forEach(function(k){
-    var e=store[k]; if(e.level==null) return;
     var d=parseYmd(k); d.setHours(0,0,0,0);
-    if(d>=start && d<=today){ counts[e.level]++; rec++; }
+    if(d<start || d>today) return;
+    var e=store[k];
+    if(e.level!=null){ counts[e.level]++; rec++; }
+    if(e.habits){ for(var id in e.habits){ if(habitCounts.hasOwnProperty(id)) habitCounts[id]++; } }
   });
 
   var good=counts[6]+counts[5], normal=counts[4], slight=counts[3], bad=counts[2]+counts[1];
 
-  // サマリー文
+  // サマリー文（体調）
   var sumEl=document.getElementById('agg-summary');
   if(rec===0){
-    sumEl.textContent='この期間の記録はまだありません。上の「きょうの調子」やカレンダーから記録してみましょう。';
+    sumEl.textContent='この期間の体調記録はまだありません。上の「きょうの調子」やカレンダーから記録してみましょう。';
   } else {
+    var pf=function(c){ return rec?Math.round(c/rec*100):0; };
     sumEl.innerHTML='この<b>'+periodLabel+'</b>（'+periodDays+'日間）で記録した<b>'+rec+'日</b>のうち、'
-      +'良い日が<b>'+good+'日</b>、ふつうが<b>'+normal+'日</b>、少し悪い日が<b>'+slight+'日</b>、悪い日が<b>'+bad+'日</b>でした。';
+      +'良い日が<b>'+good+'日</b>（'+pf(good)+'%）、ふつうが<b>'+normal+'日</b>（'+pf(normal)+'%）、'
+      +'少し悪い日が<b>'+slight+'日</b>（'+pf(slight)+'%）、悪い日が<b>'+bad+'日</b>（'+pf(bad)+'%）でした。';
   }
   document.getElementById('agg-coverage').textContent =
-    '対象 '+periodDays+'日 ・ 記録した日 '+rec+'日（'+(periodDays?Math.round(rec/periodDays*100):0)+'%）';
+    '対象 '+periodDays+'日 ・ 体調を記録した日 '+rec+'日（'+(periodDays?Math.round(rec/periodDays*100):0)+'%）';
 
   // 積み上げバー（良い→悪い）
   var stack=document.getElementById('agg-stack'); stack.innerHTML='';
@@ -345,6 +467,20 @@ function renderAgg(){
       +'<span class="num">'+c+'日 ('+pct+'%)</span>';
     rows.appendChild(row);
   });
+
+  // やったこと の集計
+  var hbox=document.getElementById('agg-habits'); hbox.innerHTML='';
+  if(habits.length){
+    var head=document.createElement('p'); head.className='agg-subhead'; head.textContent='やったこと（この期間の日数）'; hbox.appendChild(head);
+    habits.forEach(function(h){
+      var c=habitCounts[h.id]||0, pct=periodDays?Math.round(c/periodDays*100):0;
+      var row=document.createElement('div'); row.className='agg-row';
+      row.innerHTML='<span class="hlbl">'+(h.emoji?h.emoji+' ':'')+escapeHtml(h.label)+'</span>'
+        +'<span class="barbox"><i style="width:'+pct+'%;background:var(--gold)"></i></span>'
+        +'<span class="num">'+c+'日</span>';
+      hbox.appendChild(row);
+    });
+  }
 }
 
 // ---- カレンダー ----
@@ -359,11 +495,19 @@ function renderCalendar(){
   for(var day=1; day<=days; day++){
     (function(day){
       var d=new Date(calY,calM,day), ds=ymd(d);
-      var cell=document.createElement('button'); cell.className='cal-cell'; cell.textContent=day;
+      var cell=document.createElement('button'); cell.className='cal-cell';
+      var num=document.createElement('span'); num.className='cnum'; num.textContent=day; cell.appendChild(num);
       if(d.getDay()===0) cell.classList.add('sun');
       if(d.getDay()===6) cell.classList.add('sat');
       var e=store[ds];
       if(e && e.level!=null){ var m=levelMeta(e.level); cell.style.background=m.color; cell.style.color=m.text; cell.classList.add('has'); }
+      var done = e && e.habits ? habits.filter(function(h){ return e.habits[h.id]; }) : [];
+      if(done.length){
+        var marks=document.createElement('div');
+        marks.className='cmarks '+(done.length<=2?'s1':(done.length<=4?'s2':'s3'));
+        done.forEach(function(h){ var sp=document.createElement('span'); sp.textContent=(h.emoji||h.label.charAt(0)); marks.appendChild(sp); });
+        cell.appendChild(marks);
+      }
       if(ds===t) cell.classList.add('today');
       if(ds>t){ cell.classList.add('future'); cell.disabled=true; }
       else { cell.addEventListener('click', function(){ openEditor(ds); }); }
@@ -374,7 +518,7 @@ function renderCalendar(){
 
 // ---- 一覧 ----
 function renderList(){
-  var keys=Object.keys(store).filter(function(k){ return store[k].level!=null || store[k].memo; }).sort().reverse();
+  var keys=Object.keys(store).filter(function(k){ return hasAny(store[k]); }).sort().reverse();
   var box=document.getElementById('list'); box.innerHTML='';
   if(!keys.length){ box.innerHTML='<p class="empty-note">まだ記録がありません。</p>'; return; }
   keys.forEach(function(k){
@@ -385,14 +529,16 @@ function renderList(){
       var chip = m
         ? '<span class="list-chip" style="background:'+m.color+';color:'+m.text+'">'+m.label+'</span>'
         : '<span class="list-chip none">—</span>';
-      row.innerHTML='<span class="list-date">'+fmtShort(d)+'</span>'+chip
+      var done = e.habits ? habits.filter(function(h){ return e.habits[h.id]; }) : [];
+      var hh = done.length ? '<span class="list-habits">'+done.map(function(h){ return '<span class="lh">'+(h.emoji||escapeHtml(h.label))+'</span>'; }).join('')+'</span>' : '';
+      row.innerHTML='<span class="list-date">'+fmtShort(d)+'</span>'+chip+hh
         +'<span class="list-memo">'+escapeHtml(e.memo||'')+'</span>';
       box.appendChild(row);
     })(k);
   });
 }
 
-// ---- モーダル ----
+// ---- モーダル（その日の記録） ----
 var editDate=null;
 function openEditor(ds){
   editDate=ds;
@@ -400,9 +546,34 @@ function openEditor(ds){
   var e=store[ds];
   markSelected(document.getElementById('modal-levels'), e?e.level:null);
   document.getElementById('modal-memo').value = e ? (e.memo||'') : '';
+  renderHabitChips(document.getElementById('modal-habits'), ds);
   document.getElementById('modal').classList.add('show');
 }
 function closeEditor(){ document.getElementById('modal').classList.remove('show'); editDate=null; }
+
+// ---- 項目編集モーダル ----
+function openHabitManager(){ renderHabitManager(); document.getElementById('hmodal').classList.add('show'); }
+function closeHabitManager(){ document.getElementById('hmodal').classList.remove('show'); }
+function renderHabitManager(){
+  var box=document.getElementById('hm-list'); box.innerHTML='';
+  habits.forEach(function(h){
+    (function(h){
+      var row=document.createElement('div'); row.className='hm-item';
+      var inp=document.createElement('input'); inp.type='text'; inp.value=h.label; inp.maxLength=20;
+      inp.addEventListener('change', function(){ renameHabit(h.id, inp.value.trim()||h.label); inp.value=(inp.value.trim()||h.label); refreshHabitUIs(); });
+      var del=document.createElement('button'); del.className='hm-del'; del.textContent='🗑'; del.title='削除';
+      del.addEventListener('click', function(){
+        if(confirm('「'+h.label+'」を削除しますか？\n（過去の記録そのものは残ります）')){ deleteHabit(h.id); renderHabitManager(); refreshHabitUIs(); }
+      });
+      row.appendChild(inp); row.appendChild(del); box.appendChild(row);
+    })(h);
+  });
+}
+function refreshHabitUIs(){
+  renderHabitChips(document.getElementById('today-habits'), todayYmd());
+  if(editDate) renderHabitChips(document.getElementById('modal-habits'), editDate);
+  renderAgg(); renderCalendar(); renderList();
+}
 
 // ---- 全体再描画 ----
 function render(){ renderToday(); renderAgg(); renderCalendar(); renderList(); }
@@ -422,14 +593,16 @@ function downloadBlob(blob, name){
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
 function exportJson(){
-  downloadBlob(new Blob([JSON.stringify(store,null,2)],{type:'application/json'}),
+  var data={ version:2, records:store, habits:habits };
+  downloadBlob(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),
     '体調記録_'+todayYmd().replace(/-/g,'')+'.json');
 }
 function exportCsv(){
-  var rows=[['日付','レベル','体調','メモ']];
+  var rows=[['日付','レベル','体調','メモ','やったこと']];
   Object.keys(store).sort().forEach(function(k){
     var e=store[k], m=e.level!=null?levelMeta(e.level):null;
-    rows.push([k, (e.level==null?'':e.level), (m?m.label:''), (e.memo||'')]);
+    var done = e.habits ? habits.filter(function(h){ return e.habits[h.id]; }).map(function(h){ return h.label; }).join('・') : '';
+    rows.push([k, (e.level==null?'':e.level), (m?m.label:''), (e.memo||''), done]);
   });
   var csv='﻿'+rows.map(function(r){
     return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(',');
@@ -440,15 +613,26 @@ function importJson(file){
   var r=new FileReader();
   r.onload=function(){
     try{
-      var data=JSON.parse(r.result);
-      if(typeof data!=='object' || data===null || Array.isArray(data)) throw new Error('bad');
+      var data=JSON.parse(r.result), records, defs=null;
+      if(data && typeof data==='object' && data.records && typeof data.records==='object'){
+        records=data.records; if(Array.isArray(data.habits)) defs=data.habits;     // 新形式
+      } else if(data && typeof data==='object' && !Array.isArray(data)){
+        records=data;                                                              // 旧形式（日付マップ）
+      } else { throw new Error('bad'); }
       var n=0;
-      Object.keys(data).forEach(function(k){
-        if(/^\d{4}-\d{2}-\d{2}$/.test(k) && data[k] && typeof data[k]==='object'){
-          store[k]={ level:(data[k].level==null?null:Number(data[k].level)), memo:String(data[k].memo||''), updatedAt:data[k].updatedAt||Date.now() };
+      Object.keys(records).forEach(function(k){
+        var src=records[k];
+        if(/^\d{4}-\d{2}-\d{2}$/.test(k) && src && typeof src==='object'){
+          store[k]={
+            level:(src.level==null?null:Number(src.level)),
+            memo:String(src.memo||''),
+            habits:(src.habits && typeof src.habits==='object')?src.habits:{},
+            updatedAt:src.updatedAt||Date.now()
+          };
           n++;
         }
       });
+      if(defs && defs.length){ habits=defs; saveHabits(); }
       save(); render(); toast(n+'件を読み込みました');
     }catch(e){ toast('読み込めませんでした'); }
   };
@@ -470,7 +654,7 @@ function importJson(file){
 
   // メモ
   document.getElementById('today-memo').addEventListener('change', function(e){
-    setMemo(todayYmd(), e.target.value.trim()); renderList(); toast('保存しました');
+    setMemo(todayYmd(), e.target.value.trim()); renderList(); renderCalendar(); toast('保存しました');
   });
   document.getElementById('modal-memo').addEventListener('change', function(e){
     if(editDate){ setMemo(editDate, e.target.value.trim()); renderList(); renderCalendar(); }
@@ -510,14 +694,26 @@ function importJson(file){
     s.innerHTML='<span class="sw" style="background:'+l.color+'"></span>'+l.label;
     lg.appendChild(s);
   });
+  var hint=document.createElement('span'); hint.textContent='日付の下のマーク＝その日やったこと'; lg.appendChild(hint);
 
-  // モーダル操作
+  // 編集モーダル（その日）
   document.getElementById('modal-close').addEventListener('click', closeEditor);
   document.getElementById('modal-done').addEventListener('click', closeEditor);
   document.getElementById('modal').addEventListener('click', function(e){ if(e.target.id==='modal') closeEditor(); });
   document.getElementById('modal-del').addEventListener('click', function(){
     if(editDate){ removeDay(editDate); closeEditor(); render(); toast('削除しました'); }
   });
+
+  // 項目編集モーダル
+  document.getElementById('edit-habits').addEventListener('click', openHabitManager);
+  document.getElementById('hm-close').addEventListener('click', closeHabitManager);
+  document.getElementById('hm-done').addEventListener('click', closeHabitManager);
+  document.getElementById('hmodal').addEventListener('click', function(e){ if(e.target.id==='hmodal') closeHabitManager(); });
+  document.getElementById('hm-add-btn').addEventListener('click', function(){
+    var inp=document.getElementById('hm-new'), v=inp.value.trim();
+    if(v){ addHabit(v); inp.value=''; renderHabitManager(); refreshHabitUIs(); toast('項目を追加しました'); }
+  });
+  document.getElementById('hm-new').addEventListener('keydown', function(e){ if(e.key==='Enter'){ document.getElementById('hm-add-btn').click(); } });
 
   // バックアップ
   document.getElementById('exp-json').addEventListener('click', exportJson);
